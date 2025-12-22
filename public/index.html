@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>AI 塔羅占卜 Tarot Reader</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <div class="app-container">
+        <header>
+            <h1>AI Tarot Reader</h1>
+            <p class="subtitle">輸入你的問題，一鍵抽牌，由 GPT 為你解讀。</p>
+        </header>
+
+        <main>
+            <section class="config-panel">
+                <label for="question">你的問題：</label>
+                <textarea id="question" rows="3" placeholder="例如：我想問未來一年感情發展的方向？"></textarea>
+
+                <div class="row">
+                    <div class="field">
+                        <label for="spreadType">牌陣：</label>
+                        <select id="spreadType">
+                            <option value="1-single">單張指引（1 張）</option>
+                            <option value="3-ppf" selected>三張：過去／現在／未來（3 張）</option>
+                            <option value="3-sba">三張：狀態／阻礙／建議（3 張）</option>
+                            <option value="5-general">五張：情境分析（5 張）</option>
+                            <option value="6-love">六張：愛情六芒星（6 張）</option>
+                            <option value="7-status">七張：狀態檢視（7 張）</option>
+                            <option value="10-celtic">十張：凱爾特十字（10 張）</option>
+                        </select>
+                    </div>
+                    <!-- 抽牌張數由牌陣自動決定，原本的 cardCount 下拉選單就不需要了 -->
+                </div>
+
+                <button id="drawBtn">抽牌並解讀</button>
+            </section>
+
+            <section class="result-panel">
+                <h2>抽牌結果</h2>
+                <div id="cardsContainer" class="cards"></div>
+
+                <h2>AI 解讀</h2>
+                <div id="answer" class="answer"></div>
+            </section>
+        </main>
+
+        <footer>
+            <small>由你自行架設的 GPT 塔羅系統 · 僅供思考參考，不作為任何專業投資／醫療／法律建議</small>
+        </footer>
+    </div>
+
+    <script src="tarot-data.js"></script>
+    <script>
+        const drawBtn = document.getElementById("drawBtn");
+        const cardsContainer = document.getElementById("cardsContainer");
+        const answerEl = document.getElementById("answer");
+
+        // 根據牌陣 key 決定要抽幾張牌 & 給後端看的中文名稱
+        function getSpreadConfig(spreadKey) {
+            switch (spreadKey) {
+                case "1-single":
+                    return { cardCount: 1, label: "單張指引" };
+                case "3-ppf":
+                    return { cardCount: 3, label: "三張：過去／現在／未來" };
+                case "3-sba":
+                    return { cardCount: 3, label: "三張：狀態／阻礙／建議" };
+                case "5-general":
+                    return { cardCount: 5, label: "五張：情境分析" };
+                case "6-love":
+                    return { cardCount: 6, label: "六張：愛情六芒星" };
+                case "7-status":
+                    return { cardCount: 7, label: "七張：狀態檢視" };
+                case "10-celtic":
+                    return { cardCount: 10, label: "十張：凱爾特十字" };
+                default:
+                    return { cardCount: 3, label: "三張牌" };
+            }
+        }
+
+        function renderCards(cards) {
+            cardsContainer.innerHTML = "";
+
+            cards.forEach((c, index) => {
+                const cardDiv = document.createElement("div");
+                cardDiv.className = "card";
+
+                cardDiv.innerHTML = `
+      <div class="card-inner">
+        <!-- 正面：牌名＋正逆位 -->
+        <div class="card-face card-front">
+          <div class="card-front-title">${c.cnName}</div>
+          <div class="card-front-sub">
+            ${c.arcana === "major" ? "大阿爾克那" : c.suit || ""}
+          </div>
+          <div class="card-front-orientation">${c.orientation}</div>
+        </div>
+
+        <!-- 背面：位置＋關鍵詞 -->
+        <div class="card-face card-back">
+          <div class="card-pos">#${index + 1} · ${c.position}</div>
+          <div class="card-back-name">${c.cnName}</div>
+          <div class="card-back-meta">${c.name}</div>
+          ${c.keywords && c.keywords.length
+                        ? `<div class="card-back-keywords">關鍵詞：${c.keywords.join("、")}</div>`
+                        : ""
+                    }
+        </div>
+      </div>
+    `;
+
+                // 點牌翻面
+                cardDiv.addEventListener("click", () => {
+                    cardDiv.classList.toggle("is-flipped");
+                });
+
+                cardsContainer.appendChild(cardDiv);
+            });
+        }
+
+
+        async function callTarotAPI(question, spreadLabel, cards) {
+            answerEl.textContent = "GPT 正在思考解讀中…";
+            const res = await fetch("/api/tarot", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ question, spreadType: spreadLabel, cards }),
+            });
+
+            const data = await res.json();
+            if (!data.ok) {
+                answerEl.textContent = "解讀失敗：" + (data.error || "未知錯誤");
+                return;
+            }
+            answerEl.textContent = data.answer;
+        }
+
+        drawBtn.addEventListener("click", async () => {
+            const question = document.getElementById("question").value.trim();
+            const spreadKey = document.getElementById("spreadType").value;
+
+            if (!question) {
+                alert("請先輸入你真正想問的問題（越具體越好）");
+                return;
+            }
+
+            // 依照牌陣決定要抽幾張 & 給後端的中文牌陣名稱
+            const { cardCount, label } = getSpreadConfig(spreadKey);
+
+            // 從 tarot-data.js 抽牌（第二個參數要改成 spreadKey，跟 assignPositions 對應）
+            const cards = drawTarotCards(cardCount, spreadKey);
+
+            renderCards(cards);
+            // 後端接到的是比較好懂的中文名稱（label）
+            await callTarotAPI(question, label, cards);
+        });
+    </script>
+</body>
+
+</html>

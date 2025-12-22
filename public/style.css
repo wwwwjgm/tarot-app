@@ -1,0 +1,253 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang TC",
+    "Noto Sans CJK TC", sans-serif;
+  background: radial-gradient(circle at top, #1e2030 0, #05060a 55%);
+  color: #f6f6f6;
+}
+
+.app-container {
+  max-width: 1100px;
+  margin: 32px auto;
+  padding: 24px 16px 40px;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 32px;
+  letter-spacing: 0.06em;
+}
+
+.subtitle {
+  margin-top: 8px;
+  color: #c3c8ff;
+  font-size: 14px;
+}
+
+main {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.8fr);
+  gap: 24px;
+}
+
+@media (max-width: 900px) {
+  main {
+    grid-template-columns: 1fr;
+  }
+}
+
+.config-panel,
+.result-panel {
+  background: rgba(15, 18, 40, 0.9);
+  border-radius: 16px;
+  padding: 16px 18px 20px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+}
+
+label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  color: #e5e7ff;
+}
+
+textarea,
+select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #4b5563;
+  background: rgba(10, 12, 30, 0.9);
+  color: #f9fafb;
+  font-size: 14px;
+  resize: vertical;
+}
+
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: #818cf8;
+  box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.6);
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.field {
+  flex: 1;
+}
+
+button {
+  margin-top: 14px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #f9fafb;
+  box-shadow: 0 12px 30px rgba(79, 70, 229, 0.5);
+  transition: transform 0.08s ease, box-shadow 0.08s ease, opacity 0.1s;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 40px rgba(79, 70, 229, 0.65);
+}
+
+button:active {
+  transform: translateY(0);
+  box-shadow: 0 8px 18px rgba(79, 70, 229, 0.6);
+  opacity: 0.95;
+}
+
+.result-panel h2 {
+  margin-top: 0;
+  font-size: 18px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.4);
+  padding-bottom: 6px;
+}
+
+/* ===== 抽牌區：卡片排版（新版，可翻牌） ===== */
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+/* 外層：負責 3D 透視＆可點擊區域 */
+.card {
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+/* 內層：負責做 Y 軸翻轉動畫 */
+.card-inner {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  transform-style: preserve-3d;
+  transition: transform 0.6s ease, box-shadow 0.2s ease;
+}
+
+/* 加上 is-flipped class 時，整張牌翻面 */
+.card.is-flipped .card-inner {
+  transform: rotateY(180deg);
+}
+
+/* 前後兩面共用基底 */
+.card-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  backface-visibility: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+}
+
+/* 正面：大牌名＋正逆位，像實體牌正面 */
+.card-front {
+  background: radial-gradient(circle at top, #312e81 0, #020617 70%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 14px 10px;
+  text-align: center;
+}
+
+.card-front-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.card-front-sub {
+  font-size: 11px;
+  color: #c7d2fe;
+  margin-bottom: 8px;
+}
+
+.card-front-orientation {
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(191, 219, 254, 0.6);
+  display: inline-block;
+}
+
+/* 背面：位置＋關鍵詞，像解說面 */
+.card-back {
+  background: radial-gradient(circle at top, #020617 0, #020617 60%, #111827 100%);
+  transform: rotateY(180deg);
+  padding: 10px 10px 8px;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.card-pos {
+  font-size: 11px;
+  color: #a5b4fc;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.card-back-name {
+  font-weight: 600;
+}
+
+.card-back-meta {
+  color: #9ca3af;
+}
+
+.card-back-keywords {
+  color: #e5e7eb;
+  margin-top: 4px;
+}
+
+/* 小互動：滑過微微浮起來 */
+.card:hover .card-inner {
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.9);
+  transform: translateY(-2px) scale(1.01);
+}
+.card.is-flipped:hover .card-inner {
+  transform: rotateY(180deg) translateY(-2px) scale(1.01);
+}
+
+
+.answer {
+  min-height: 120px;
+  padding: 10px;
+  background: rgba(15, 23, 42, 0.9);
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+footer {
+  margin-top: 20px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 12px;
+}
