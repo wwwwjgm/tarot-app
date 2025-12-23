@@ -737,6 +737,15 @@ function assignPositions(cards, spreadKey) {
       ];
       break;
 
+    case "5-story":
+      positions = [
+        "目前狀態",
+        "正在發生的關鍵事件",
+        "影響走向的主要因素",
+        "接下來的發展方向",
+        "最終結果或趨勢",
+      ];
+      break;
     case "6-love": // 愛情六芒星
       positions = [
         "你現在的狀態",

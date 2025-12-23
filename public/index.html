@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
-    <title>AI 塔羅占卜 Tarot Reader</title>
+    <title>🔮 命運之門 塔羅牌</title>
     <link rel="stylesheet" href="style.css" />
 </head>
 
@@ -11,7 +11,7 @@
     <div class="app-container">
         <header>
             <h1>AI Tarot Reader</h1>
-            <p class="subtitle">輸入你的問題，一鍵抽牌，由 GPT 為你解讀。</p>
+            <p class="subtitle">當你準備好面對命運，牌自然會出現。</p>
         </header>
 
         <main>
@@ -27,6 +27,7 @@
                             <option value="3-ppf" selected>三張：過去／現在／未來（3 張）</option>
                             <option value="3-sba">三張：狀態／阻礙／建議（3 張）</option>
                             <option value="5-general">五張：情境分析（5 張）</option>
+                            <option value="5-story">五張：事件走向解析（5 張）</option>
                             <option value="6-love">六張：愛情六芒星（6 張）</option>
                             <option value="7-status">七張：狀態檢視（7 張）</option>
                             <option value="10-celtic">十張：凱爾特十字（10 張）</option>
@@ -48,7 +49,7 @@
         </main>
 
         <footer>
-            <small>由你自行架設的 GPT 塔羅系統 · 僅供思考參考，不作為任何專業投資／醫療／法律建議</small>
+            <small>陳卿宏架設的塔羅系統 · 僅供思考參考，不作為任何專業投資／醫療／法律建議</small>
         </footer>
     </div>
 
@@ -69,6 +70,8 @@
                     return { cardCount: 3, label: "三張：狀態／阻礙／建議" };
                 case "5-general":
                     return { cardCount: 5, label: "五張：情境分析" };
+                case "5-story":
+                    return { cardCount: 5, label: "五張：事件走向解析" };
                 case "6-love":
                     return { cardCount: 6, label: "六張：愛情六芒星" };
                 case "7-status":
