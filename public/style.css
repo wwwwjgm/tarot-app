@@ -150,14 +150,9 @@ select:focus {
 .card-inner {
   position: relative;
   width: 100%;
-  height: 220px;
+  height: 320px;
   transform-style: preserve-3d;
   transition: transform 0.6s ease, box-shadow 0.2s ease;
-}
-
-/* 加上 is-flipped class 時，整張牌翻面 */
-.card.is-flipped .card-inner {
-  transform: rotateY(180deg);
 }
 
 /* 前後兩面共用基底 */
@@ -170,6 +165,7 @@ select:focus {
   border: 1px solid rgba(148, 163, 184, 0.6);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
 }
+
 
 /* 正面：大牌名＋正逆位，像實體牌正面 */
 .card-front {
@@ -200,46 +196,33 @@ select:focus {
   border: 1px solid rgba(191, 219, 254, 0.6);
   display: inline-block;
 }
-
-/* 背面：位置＋關鍵詞，像解說面 */
-.card-back {
-  background: radial-gradient(circle at top, #020617 0, #020617 60%, #111827 100%);
+/* 背面先轉 180 */
+.card-back{
   transform: rotateY(180deg);
-  padding: 10px 10px 8px;
-  font-size: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
 }
 
-.card-pos {
-  font-size: 11px;
-  color: #a5b4fc;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+/* 被點擊後才翻 */
+.card.is-flipped .card-inner{
+  transform: rotateY(180deg);
 }
 
-.card-back-name {
-  font-weight: 600;
-}
-
-.card-back-meta {
-  color: #9ca3af;
-}
-
-.card-back-keywords {
-  color: #e5e7eb;
-  margin-top: 4px;
-}
-
-/* 小互動：滑過微微浮起來 */
-.card:hover .card-inner {
+/* hover：未翻牌時浮起來 */
+.card:not(.is-flipped):hover .card-inner{
   box-shadow: 0 16px 40px rgba(15, 23, 42, 0.9);
   transform: translateY(-2px) scale(1.01);
 }
-.card.is-flipped:hover .card-inner {
+
+/* 翻牌 */
+.card.is-flipped .card-inner{
+  transform: rotateY(180deg);
+}
+
+/* hover：已翻牌時也要浮起來（但要保留 rotateY） */
+.card.is-flipped:hover .card-inner{
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.9);
   transform: rotateY(180deg) translateY(-2px) scale(1.01);
 }
+
 
 
 .answer {
@@ -314,4 +297,98 @@ body::before {
   transform: translateY(0) scale(0.97);
   box-shadow:
     0 0 15px rgba(255, 215, 0, 0.25);
+}
+
+/* =========================
+   Slot Simple（你現在實際用的）
+========================= */
+
+.slot-simple{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+}
+
+/* 標題：最多兩行，固定高度避免擠版 */
+.slot-title-simple{
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  overflow:hidden;
+
+  min-height:44px;
+  line-height:22px;
+  font-size:15px;
+  font-weight:800;
+  text-align:center;
+  word-break:break-word;
+}
+
+/* 放牌區：只留這一份（不要再出現第二個 .slot-card-area） */
+.slot-card-area{
+  width:100%;
+  max-width:210px;   /* 想更大：220~240 */
+  height:320px;      /* ✅ 抽牌前後都用同高度 */
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+}
+
+/* 抽牌前：牌背 + 文字（整個容器撐滿） */
+.slot-placeholder{
+  width:100%;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  position:relative;
+  opacity:1;         /* 這裡不要用 0.6，不然圖也會變淡 */
+}
+
+/* 牌背圖：撐滿 */
+.card-back-ghost{
+  width:100%;
+  height:100%;
+  border-radius:14px;
+  border:1px solid rgba(148,163,184,0.6);
+  box-shadow:0 12px 30px rgba(0,0,0,0.6);
+  background:url("/images/card-back.jpg") center/cover no-repeat;
+}
+
+/* 等待抽牌：貼在牌背上 */
+.slot-hint{
+  position:absolute;
+  bottom:12px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:12px;
+  padding:4px 10px;
+  border-radius:999px;
+  background:rgba(2,6,23,0.55);
+  border:1px solid rgba(191,219,254,0.35);
+  opacity:.95;
+}
+
+/* 抽牌動畫：一張一張 pop */
+.card.appear{
+  animation: drawUp .28s ease-out;
+}
+@keyframes drawUp{
+  from{ transform: translateY(16px) scale(.985); opacity:0; }
+  to  { transform: translateY(0) scale(1); opacity:1; }
+}
+
+/* ✅ 讓 slot 裡的卡片跟牌背一樣「撐滿」 */
+.slot-card-area .card{
+  width: 100%;
+  height: 100%;
+}
+
+.slot-card-area .card-inner{
+  width: 100%;
+  height: 100%;
 }

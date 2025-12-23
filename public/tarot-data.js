@@ -709,86 +709,56 @@ const TAROT_DECK = [
   },
 ];
 
-// 根據牌陣決定每張牌的位置名稱
+// 牌陣定義：位置名稱的單一來源（新增）
+const SPREAD_DEFS = {
+  "1-single": { cardCount: 1, positions: ["當下指引"] },
+  "3-ppf": { cardCount: 3, positions: ["過去", "現在", "未來"] },
+  "3-sba": { cardCount: 3, positions: ["目前狀態", "阻礙／盲點", "建議"] },
+  "5-general": { cardCount: 5, positions: ["過去", "現在", "未來", "內在因素", "外在環境"] },
+  "5-story": {
+    cardCount: 5,
+    positions: [
+      "目前狀態",
+      "正在發生的關鍵事件",
+      "影響走向的主要因素",
+      "接下來的發展方向",
+      "最終結果或趨勢",
+    ],
+  },
+  "6-love": {
+    cardCount: 6,
+    positions: ["你現在的狀態", "對方現在的狀態", "你想要的", "對方想要的", "關係中的阻礙", "未來可能走向"],
+  },
+  "7-status": {
+    cardCount: 7,
+    positions: ["過去", "現在", "未來", "內在狀態", "外在環境", "希望與恐懼", "綜合建議"],
+  },
+  "10-celtic": {
+    cardCount: 10,
+    positions: [
+      "當前狀態",
+      "眼前的阻礙",
+      "問題根源（深層因素）",
+      "最近的過去",
+      "可能的未來（不久之後）",
+      "較遠的未來走向",
+      "你自己（態度與行為）",
+      "外在環境與他人",
+      "希望與恐懼",
+      "總結與整體結果",
+    ],
+  },
+};
+
+// 給前端用：選牌陣時就能拿到位置格
+function getSpreadPositions(spreadKey) {
+  const def = SPREAD_DEFS[spreadKey];
+  return def?.positions || [];
+}
+
+// 根據牌陣決定每張牌的位置名稱（改寫：不再 switch）
 function assignPositions(cards, spreadKey) {
-  const count = cards.length;
-  let positions = [];
-
-  switch (spreadKey) {
-    case "1-single":
-      positions = ["當下指引"];
-      break;
-
-    case "3-ppf": // Past / Present / Future
-      positions = ["過去", "現在", "未來"];
-      break;
-
-    case "3-sba": // 狀態 / 阻礙 / 建議
-      positions = ["目前狀態", "阻礙／盲點", "建議"];
-      break;
-
-    case "5-general":
-      positions = [
-        "過去",
-        "現在",
-        "未來",
-        "內在因素",
-        "外在環境",
-      ];
-      break;
-
-    case "5-story":
-      positions = [
-        "目前狀態",
-        "正在發生的關鍵事件",
-        "影響走向的主要因素",
-        "接下來的發展方向",
-        "最終結果或趨勢",
-      ];
-      break;
-    case "6-love": // 愛情六芒星
-      positions = [
-        "你現在的狀態",
-        "對方現在的狀態",
-        "你想要的",
-        "對方想要的",
-        "關係中的阻礙",
-        "未來可能走向",
-      ];
-      break;
-
-    case "7-status":
-      positions = [
-        "過去",
-        "現在",
-        "未來",
-        "內在狀態",
-        "外在環境",
-        "希望與恐懼",
-        "綜合建議",
-      ];
-      break;
-
-    case "10-celtic": // 凱爾特十字
-      positions = [
-        "當前狀態",
-        "眼前的阻礙",
-        "問題根源（深層因素）",
-        "最近的過去",
-        "可能的未來（不久之後）",
-        "較遠的未來走向",
-        "你自己（態度與行為）",
-        "外在環境與他人",
-        "希望與恐懼",
-        "總結與整體結果",
-      ];
-      break;
-
-    default:
-      // 萬一未來你新增牌陣忘了改這裡，就用通用位置名稱
-      positions = Array.from({ length: count }, (_, i) => `位置 ${i + 1}`);
-  }
-
+  const positions = getSpreadPositions(spreadKey);
   return cards.map((c, idx) => ({
     ...c,
     position: positions[idx] || `位置 ${idx + 1}`,
@@ -796,12 +766,16 @@ function assignPositions(cards, spreadKey) {
 }
 
 
+
 // 抽牌函式：抽 cardCount 張，隨機決定正逆位與位置
 function drawTarotCards(cardCount = 3, spreadKey = "") {
+  const positions = getSpreadPositions(spreadKey);
+  const safeCount = Math.min(cardCount, positions.length || cardCount);
+
   const deckCopy = [...TAROT_DECK];
   const result = [];
 
-  for (let i = 0; i < cardCount; i++) {
+  for (let i = 0; i < safeCount; i++) {
     if (deckCopy.length === 0) break;
     const idx = Math.floor(Math.random() * deckCopy.length);
     const card = deckCopy.splice(idx, 1)[0];
@@ -817,3 +791,6 @@ function drawTarotCards(cardCount = 3, spreadKey = "") {
   return assignPositions(result, spreadKey);
 }
 
+// ===== 讓 index.html 可以使用這些函式（一定要在最底部） =====
+window.getSpreadPositions = getSpreadPositions;
+window.drawTarotCards = drawTarotCards;

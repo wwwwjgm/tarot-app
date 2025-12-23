@@ -60,6 +60,7 @@
         const drawBtn = document.getElementById("drawBtn");
         const cardsContainer = document.getElementById("cardsContainer");
         const answerEl = document.getElementById("answer");
+        let uiState = "SLOTS"; // "SLOTS" | "REVEALING" | "DONE"
 
         // 根據牌陣 key 決定要抽幾張牌 & 給後端看的中文名稱
         function getSpreadConfig(spreadKey) {
@@ -142,6 +143,99 @@
             answerEl.textContent = data.answer;
         }
 
+        function renderSlots(spreadKey) {
+            const titles = window.getSpreadPositions?.(spreadKey) || [];
+            cardsContainer.innerHTML = "";
+
+            titles.forEach((title, index) => {
+                const slot = document.createElement("div");
+                slot.className = "slot-simple";
+
+                slot.innerHTML = `
+      <div class="slot-title-simple">
+        #${index + 1} · ${title}
+      </div>
+
+      <div class="slot-card-area" data-index="${index}">
+        <div class="slot-placeholder">
+          <div class="card-back-ghost"></div>
+          <div class="slot-hint">等待抽牌</div>
+        </div>
+      </div>
+    `;
+
+                cardsContainer.appendChild(slot);
+            });
+
+            uiState = "SLOTS";
+        }
+
+
+
+
+        // 一張一張「抽出來」放進 slot（不翻牌，永遠看得到正位／逆位）
+        function animateSlotsToCards(cards) {
+            const areas = Array.from(document.querySelectorAll(".slot-card-area"));
+            if (!areas.length) return;
+
+            uiState = "REVEALING";
+
+            cards.forEach((c, i) => {
+                const area = areas[i];
+                if (!area) return;
+
+                const delay = i * 420; // 一張一張抽出來的節奏
+
+                setTimeout(() => {
+                    // 清掉「等待翻牌」
+                    area.innerHTML = "";
+
+                    const cardDiv = document.createElement("div");
+                    cardDiv.className = "card appear"; // 出場 pop 動畫
+
+                    cardDiv.innerHTML = `
+        <div class="card-inner">
+          <div class="card-face card-front">
+            <div class="card-front-title">${c.cnName}</div>
+            <div class="card-front-sub">
+              ${c.arcana === "major" ? "大阿爾克那" : (c.suit || "")}
+            </div>
+            <div class="card-front-orientation">${c.orientation}</div>
+          </div>
+
+          <div class="card-face card-back">
+            <div class="card-back-name">${c.cnName}</div>
+            <div class="card-back-meta">${c.name}</div>
+            ${c.keywords?.length ? `<div class="card-back-keywords">關鍵詞：${c.keywords.join("、")}</div>` : ""}
+          </div>
+        </div>
+      `;
+
+                    // ✅ 改成：使用者點了才翻
+                    cardDiv.addEventListener("click", () => {
+                        cardDiv.classList.toggle("is-flipped");
+                    });
+
+                    area.appendChild(cardDiv);
+
+                    // 最後一張出來後，狀態變 DONE
+                    if (i === cards.length - 1) uiState = "DONE";
+                }, delay);
+            });
+        }
+
+
+
+
+        // 一選牌陣就顯示位置格
+        const spreadSelectEl = document.getElementById("spreadType");
+        spreadSelectEl.addEventListener("change", (e) => {
+            renderSlots(e.target.value);
+        });
+
+        // 頁面載入先渲染預設牌陣位置
+        renderSlots(spreadSelectEl.value);
+
         drawBtn.addEventListener("click", async () => {
             const question = document.getElementById("question").value.trim();
             const spreadKey = document.getElementById("spreadType").value;
@@ -151,16 +245,25 @@
                 return;
             }
 
-            // 依照牌陣決定要抽幾張 & 給後端的中文牌陣名稱
-            const { cardCount, label } = getSpreadConfig(spreadKey);
+            // 正在翻牌就先不理（避免動畫打架）
+            if (uiState === "REVEALING") return;
 
-            // 從 tarot-data.js 抽牌（第二個參數要改成 spreadKey，跟 assignPositions 對應）
+            // 翻完後再按：重新洗牌（回到 slots）
+            if (uiState === "DONE") {
+                renderSlots(spreadKey);
+                answerEl.textContent = "已重新洗牌，準備好就再按一次開始翻牌。";
+                return;
+            }
+
+            // 第一次按：開始翻牌（slot→card）
+            const { cardCount, label } = getSpreadConfig(spreadKey);
             const cards = drawTarotCards(cardCount, spreadKey);
 
-            renderCards(cards);
-            // 後端接到的是比較好懂的中文名稱（label）
+            animateSlotsToCards(cards);
+
             await callTarotAPI(question, label, cards);
         });
+
     </script>
 </body>
 
