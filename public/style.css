@@ -6,8 +6,15 @@ body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang TC",
     "Noto Sans CJK TC", sans-serif;
-  background: radial-gradient(circle at top, #1e2030 0, #05060a 55%);
-  color: #f6f6f6;
+
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 215, 0, 0.08), transparent 35%),
+    radial-gradient(circle at 70% 30%, rgba(138, 43, 226, 0.18), transparent 40%),
+    radial-gradient(circle at 50% 75%, rgba(72, 61, 139, 0.25), transparent 45%),
+    linear-gradient(180deg, #12091f 0%, #07030f 100%);
+
+  color: #f8f7ff;
+  min-height: 100vh;
 }
 
 .app-container {
@@ -250,4 +257,17 @@ footer {
   text-align: center;
   color: #9ca3af;
   font-size: 12px;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.3), transparent 40%),
+    radial-gradient(1px 1px at 70% 60%, rgba(255,255,255,0.25), transparent 40%),
+    radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,0.2), transparent 40%);
+  background-size: 300px 300px;
+  pointer-events: none;
+  opacity: 0.35;
 }
